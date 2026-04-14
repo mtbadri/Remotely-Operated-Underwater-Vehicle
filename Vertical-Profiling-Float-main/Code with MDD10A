@@ -1,0 +1,83 @@
+#include <Arduino.h>
+
+// Constants won't change
+const int RELAY_PIN = 8;    // The Arduino pin, which connects to the IN pin of the relay
+const int RELAY_PIN1 = 9;
+const int RELAY_PIN2 = 10;
+const int RELAY_PIN3 = 11;
+const int RELAY_PIN4 = 12;
+const int RELAY_PIN5 = 13;
+const int GROUND_PIN = 4;
+
+// The setup function runs once when you press reset or power the board
+void setup() {
+  // Initialize digital pins as outputs
+  pinMode(RELAY_PIN, OUTPUT);
+  pinMode(RELAY_PIN1, OUTPUT);
+  pinMode(RELAY_PIN2, OUTPUT);
+  pinMode(RELAY_PIN3, OUTPUT);
+  pinMode(RELAY_PIN4, OUTPUT);
+  pinMode(RELAY_PIN5, OUTPUT);
+  pinMode(GROUND_PIN, OUTPUT);
+
+  // Initialize Serial Monitor
+  Serial.begin(9600);
+}
+
+// The loop function runs over and over again forever
+void loop() {
+  digitalWrite(GROUND_PIN, LOW);
+  Serial.println("1. Sucks air from orange baloon initially for 18s");
+  delay(1000);
+
+
+  // Sucks air initially
+  digitalWrite(RELAY_PIN2, HIGH);
+  digitalWrite(RELAY_PIN3, HIGH);
+  Serial.println("2. Turns everything off for 20s");
+  delay(8000);
+
+
+  // Turns everything off
+  digitalWrite(RELAY_PIN, LOW);
+  digitalWrite(RELAY_PIN1, LOW);
+  digitalWrite(RELAY_PIN2, LOW);
+  digitalWrite(RELAY_PIN3, LOW);
+  digitalWrite(RELAY_PIN4, LOW);
+  digitalWrite(RELAY_PIN5, LOW);
+  Serial.println("3. Sucks air from blue balloon for 8s");
+  delay(20000);
+
+
+  // Sucks air from the blue balloon
+  digitalWrite(RELAY_PIN, HIGH);
+  digitalWrite(RELAY_PIN5, HIGH);
+  Serial.println("4. Turns everything off for 30s");
+  delay(20000);
+
+
+  // Turns everything off
+  digitalWrite(RELAY_PIN, LOW);
+  digitalWrite(RELAY_PIN5, LOW);
+  Serial.println("5. Sucks air from orange baloon for 16s");
+  delay(20000);
+
+
+  // Sucks air from the orange balloon
+  digitalWrite(RELAY_PIN2, HIGH);
+  digitalWrite(RELAY_PIN3, HIGH);
+  Serial.println("6. Turns everything off and restarts in 16s");
+  delay(16000);
+
+  // Turns everything off
+  digitalWrite(RELAY_PIN, LOW); 
+  digitalWrite(RELAY_PIN2, LOW);
+  digitalWrite(RELAY_PIN3, LOW);
+  delay(16000);
+Serial.println("                                        ");
+Serial.println("                                        ");
+Serial.println("                                        ");
+Serial.println("                                        ");
+Serial.println("                                        ");
+
+}

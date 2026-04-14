@@ -1,0 +1,63 @@
+#include <Wire.h>
+#include <ESP8266WiFi.h>
+#include <ESPAsyncTCP.h>
+#include <ESPAsyncWebServer.h>
+#include <MS5837.h>
+#include <WebSerialLite.h>
+#include <cstdlib>  // for atoi() function (if using option 1)
+
+const char* current_Time = "1417";
+float startTime;
+
+const char* ssid = "Ranger 33";  // Define your Access Point SSID here
+const char* password = "1234567890";  // Define your Access Point password here
+
+AsyncWebServer server(80);
+
+MS5837 sensor;
+
+
+void setup() {
+  Serial.begin(9600);
+  Wire.begin();
+  sensor.setModel(MS5837::MS5837_30BA);
+  sensor.init();
+  sensor.setFluidDensity(997); // kg/m^3 (997 freshwater, 1029 for seawater)
+
+  Serial.println("Starting Access Point");
+  Serial.print("SSID: ");
+  Serial.println(ssid);
+  WiFi.softAP(ssid, password);
+  Serial.print("IP Address: ");
+  Serial.println(WiFi.softAPIP());
+
+  WebSerial.begin(&server);
+  server.begin();
+  startTime = atoi(current_Time) * 36000;
+
+}
+
+void loop() {
+  sensor.read();
+  float pressure_mbar = sensor.pressure(); // Get pressure in mbar
+  float pressure_kpa = pressure_mbar * 0.1;
+  float number = 45;
+  String numberStr = String(number, 2); // Convert float to string with 2 decimal places
+  String depthStr = String(sensor.depth(), 2);
+
+  unsigned long seconds = startTime / 1000;
+  unsigned long hours = seconds / 3600;
+  unsigned long minutes = (seconds % 3600) / 60;
+  seconds = seconds % 60;
+  startTime += 5000;
+
+  WebSerial.print("RN33   ");
+  WebSerial.print(String(hours, DEC) + ":" + String(minutes, DEC) + ":" + String(seconds, DEC));
+  WebSerial.print(" UTC   ");
+  Serial.println(numberStr);
+  WebSerial.print(pressure_kpa, 2); // Display with 2 decimal places
+  WebSerial.print(" kPa   ");
+  WebSerial.println(depthStr + " meters   "); 
+
+  delay(5000);
+}

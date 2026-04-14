@@ -1,0 +1,115 @@
+#include <Servo.h>
+
+// ESC/Thruster Settings
+const int MAX = 400; // Value between 0-400
+const int CENTER = 1500;
+const int BUTTON_PRESS_THRESHOLD = 400; // Set your desired value for button press
+
+
+// Arduino Pins
+const byte Joystick1 = A12; // Joystick Y-axis (motor 1)
+const byte Joystick2 = A0; // Joystick Z-axis (motor 2)
+const byte Button1 = A8;
+const byte Button2 = A8;
+const byte TH_L = 24;
+const byte TH_R = 26;
+const byte TH_U = 27; 
+const byte TH_D = 25;
+
+// Servos
+Servo thL;
+Servo thR;
+Servo thU;
+Servo thD;
+
+void setup() {
+  Serial.begin(9600);
+
+  thL.attach(TH_L);
+  thR.attach(TH_R);
+  thU.attach(TH_U);
+  thD.attach(TH_D);
+
+  thL.writeMicroseconds(CENTER);
+  thR.writeMicroseconds(CENTER);
+  thU.writeMicroseconds(CENTER);
+  thD.writeMicroseconds(CENTER);
+
+  delay(2000);
+}
+
+void loop() {
+  int rawmotor1Command = map(analogRead(Joystick1), 0, 1023, -MAX, MAX);
+  int rawmotor2Command = map(analogRead(Joystick2), 0, 1023, -MAX, MAX);
+  int rawmotor3Command = analogRead(Button1);
+  int rawmotor4Command = analogRead(Button2);
+
+  int motor1Command = rawmotor1Command*-1 -7;
+  int motor2Command = rawmotor2Command*1 - 14;
+  int motor3Command = analogRead(Button1) == rawmotor3Command > BUTTON_PRESS_THRESHOLD ? BUTTON_PRESS_THRESHOLD : 0;
+  int motor4Command = analogRead(Button2) == rawmotor4Command > BUTTON_PRESS_THRESHOLD ? BUTTON_PRESS_THRESHOLD : 0;
+
+  if (analogRead(Joystick1) > BUTTON_PRESS_THRESHOLD) {
+    motor1Command = MAX;
+  } else if (analogRead(Joystick1) < BUTTON_PRESS_THRESHOLD) {
+    motor1Command = -MAX;
+  } else {
+    motor1Command = 0;
+  }
+
+  if (analogRead(Joystick2) > BUTTON_PRESS_THRESHOLD) {
+    motor2Command = MAX;
+  } else if (analogRead(Joystick2) < BUTTON_PRESS_THRESHOLD) {
+    motor2Command = -MAX;
+  } else {
+    motor2Command = 0;
+  }
+
+  if (motor3Command > 0) {
+    // Button 1 is pressed, set motor4Command to the negative value of motor3Command
+    motor4Command = -motor3Command;
+  } else if (motor4Command > 0) {
+    // Button 2 is pressed, set motor4Command to the negative value of motor4Command
+    motor3Command = -motor4Command;
+  } else {
+    // Neither button is pressed, set motor4Command to 0
+    motor4Command = 0;
+    motor3Command = 0;
+  }
+
+  if (rawmotor1Command > 600) {
+    motor1Command = MAX;
+  } else if (rawmotor1Command < 400) {
+    motor1Command = -MAX;
+  }
+
+  if (rawmotor2Command > 600) {
+    motor2Command = MAX;
+  } else if (rawmotor1Command < 400) {
+    motor2Command = -MAX;
+  }
+
+  // For Button2 (A4)
+  if (rawmotor4Command > 600) { // A4 pressed up
+    motor4Command = MAX;
+    motor3Command = MAX;
+  } else if (rawmotor4Command < 400) { // A4 pressed down
+    motor4Command = -MAX;
+    motor3Command = -MAX;
+  }
+
+  thL.writeMicroseconds(CENTER + motor1Command);
+  thR.writeMicroseconds(CENTER + motor2Command);
+  thU.writeMicroseconds(CENTER + motor3Command);
+  thD.writeMicroseconds(CENTER + motor4Command);
+
+  Serial.print("Fwd: "); Serial.print(motor1Command);
+  Serial.print("    Back: "); Serial.print(motor2Command);
+  Serial.print("      ");
+
+
+  Serial.print("Button 1: "); Serial.print(motor3Command);
+  Serial.print("    Button 2: "); Serial.println(motor4Command);
+
+  delay(500);
+}

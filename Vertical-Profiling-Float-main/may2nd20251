@@ -1,0 +1,132 @@
+#include <Wire.h>
+#include <SPI.h>
+#include <SD.h>
+#include <ESP8266WiFi.h>
+#include <WebSerial.h>
+#include <ESPAsyncWebServer.h>
+#include <MS5837.h>
+
+// ==== Pins ====
+const int chipSelect = 5;      // SD Card CS
+
+// ==== Objects ====
+MS5837 sensor;
+File dataFile;
+
+const char* ssid = "Ranger 7";
+const char* password = "1234567890";
+
+AsyncWebServer server(80);
+
+const int numReadings = 30;
+String dataBuffer[numReadings];
+int dataCount = 0;
+
+// ==== Timekeeping ====
+// Must be declared before setup() and loop()
+unsigned long elapsedSeconds = 0;
+
+// We'll zero depth on the first reading
+float depthOffset = 0.0;
+
+// SD logfile names
+const char* LOG_FILE     = "/sensor_data.txt";
+const char* BATCH_FILE   = "/sensor_data_batch.txt";
+
+void setup() {
+  Serial.begin(115200);
+  Wire.begin();
+
+  // ==== SENSOR INIT ====
+  sensor.setModel(MS5837::MS5837_02BA);  // Use the 2 bar sensor!
+  if (!sensor.init()) {
+    Serial.println("MS5837 sensor init failed!");
+    while (1);
+  }
+  sensor.setFluidDensity(997);  // freshwater
+
+  delay(2000);                  // let sensor stabilize
+  sensor.read();                // grab first measurement
+  depthOffset = sensor.depth(); // set zero point
+  Serial.print("Depth offset set to: ");
+  Serial.println(depthOffset, 3);
+
+  // ==== WIFI & WEBSERIAL ====
+  WiFi.softAP(ssid, password);
+  Serial.print("AP IP: ");
+  Serial.println(WiFi.softAPIP());
+
+  WebSerial.begin(&server);
+  WebSerial.onMessage([](uint8_t *data, size_t len) {
+    WebSerial.print("RX: ");
+    WebSerial.write(data, len);
+    WebSerial.println();
+  });
+  server.begin();
+
+  // ==== SD CARD ====
+  if (!SD.begin(chipSelect)) {
+    Serial.println("SD init failed!");
+    return;
+  }
+  // Pre-open log file in append mode
+  dataFile = SD.open(LOG_FILE, FILE_WRITE);
+  if (!dataFile) {
+    Serial.println("Failed to open log file!");
+  } else {
+    dataFile.println("=== New Session ===");
+    dataFile.flush();
+  }
+}
+
+void loop() {
+  // ==== READ SENSOR ====
+  sensor.read();
+  float pressure_mbar = sensor.pressure();
+  float depth_m      = sensor.depth() - depthOffset;
+
+  // ==== TIME KEEPING ====
+  elapsedSeconds += 5;                   // we're delaying 5 s below
+  unsigned long hrs = (elapsedSeconds / 3600UL) % 24;
+  unsigned long min = (elapsedSeconds /   60UL) % 60;
+  unsigned long sec =  elapsedSeconds         % 60;
+
+  char timeStr[9];
+  sprintf(timeStr, "%02lu:%02lu:%02lu", hrs, min, sec);
+
+  // ==== LOG STRING ====
+  String entry = String("RN01 ") + timeStr + " UTC "
+               + String(pressure_mbar, 1) + " mbar "
+               + String(depth_m, 2)       + " m";
+
+  // ==== BUFFER ====
+  dataBuffer[dataCount++] = entry;
+  Serial.println(entry);
+
+  // ==== APPEND TO SD ====
+  if (dataFile) {
+    dataFile.println(entry);
+    dataFile.flush();
+  }
+
+  // ==== BATCH OUTPUT ====
+  if (dataCount >= numReadings) {
+    WebSerial.println("Batch:");
+    for (int i = 0; i < numReadings; i++) {
+      WebSerial.println(dataBuffer[i]);
+      delay(20);
+    }
+    dataCount = 0;
+
+    // Save batch file
+    File batch = SD.open(BATCH_FILE, FILE_WRITE);
+    if (batch) {
+      for (int i = 0; i < numReadings; i++) {
+        batch.println(dataBuffer[i]);
+      }
+      batch.close();
+    }
+  }
+
+  delay(5000);
+}

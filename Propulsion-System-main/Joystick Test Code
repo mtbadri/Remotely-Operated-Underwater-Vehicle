@@ -1,0 +1,20 @@
+void setup() {
+  // put your setup code here, to run once:
+Serial.begin(9600);
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+int motor1Command = analogRead(A12);
+int motor2Command = analogRead(A8);
+int motor3Command = analogRead(A4);
+int motor4Command = analogRead(A4);
+
+  Serial.print("Fwd: "); Serial.print(motor1Command);
+  Serial.print("    Back: "); Serial.print(motor2Command);
+  Serial.print("      ");
+  Serial.print("Button 1: "); Serial.print(motor3Command);
+  Serial.print("    Button 2: "); Serial.println(motor4Command);
+
+delay(500);
+}

@@ -1,0 +1,47 @@
+#include <AFMotor.h>
+
+// Create an instance of the AFMotor library
+AF_DCMotor motor1(3);  // Motor connected to M3
+AF_DCMotor motor2(4);
+AF_DCMotor airvalve(1);  // Motor connected to M4
+
+void setup() {
+  // Initialize Serial communication
+  Serial.begin(9600);
+
+  // Set the motor speed (0-255)
+  motor1.setSpeed(255);  // You can adjust the speed as needed
+  motor2.setSpeed(255);
+  airvalve.setSpeed(255);  // You can adjust the speed as needed
+}
+
+void loop() {
+  // Run both motors forward
+  airvalve.run(FORWARD);  // You can adjust the speed as needed
+  motor1.run(BACKWARD);
+
+
+  Serial.println("Motors Forward");
+  delay(5000);  // Run the motors forward for 5 seconds
+
+  // Stop both motors
+  motor1.run(RELEASE);
+  motor2.run(RELEASE);
+  airvalve.run(RELEASE);
+
+  Serial.println("Motors Stopped");
+  delay(2000);  // Pause for 2 seconds
+
+  // Run both motors backward
+  motor2.run(BACKWARD);
+
+  Serial.println("Motors Backward");
+  delay(5000);  // Run the motors backward for 5 seconds
+
+  // Stop both motors
+  motor1.run(RELEASE);
+  motor2.run(RELEASE);
+
+  Serial.println("Motors Stopped");
+  delay(2000);  // Pause for 2 seconds
+}

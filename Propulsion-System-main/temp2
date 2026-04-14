@@ -1,0 +1,77 @@
+#include <Servo.h>
+
+// Define the pins for ESC control (must be PWM-capable for the Servo library)
+#define M1_ESC_PIN 3
+#define M2_ESC_PIN 5
+#define M3_ESC_PIN 6
+#define M4_ESC_PIN 9
+
+Servo motor1, motor2, motor3, motor4;
+
+void setup() {
+  Serial.begin(115200);   // USB Serial for debugging
+  Serial1.begin(115200);  // UART communication with ESP32
+
+  // Attach ESC control pins to Servo objects
+  motor1.attach(M1_ESC_PIN);
+  motor2.attach(M2_ESC_PIN);
+  motor3.attach(M3_ESC_PIN);
+  motor4.attach(M4_ESC_PIN);
+
+  // Send neutral signal (1500 microseconds) to arm ESCs
+  motor1.writeMicroseconds(1500);
+  motor2.writeMicroseconds(1500);
+  motor3.writeMicroseconds(1500);
+  motor4.writeMicroseconds(1500);
+  
+  // Delay to allow the ESCs to arm properly
+  delay(7000);
+  Serial.println("Mega is ready and ESCs armed!");
+}
+
+void loop() {
+  if (Serial1.available()) {
+    String receivedData = Serial1.readStringUntil('\n');
+    receivedData.trim();  // Remove any extra whitespace, CR, or LF characters
+
+    // Debug: print raw data and its length
+    Serial.print("Raw data: [");
+    Serial.print(receivedData);
+    Serial.print("] Length: ");
+    Serial.println(receivedData.length());
+
+    int m1, m2, m3, m4;
+    
+    // Parse the data expected in the format: "M1:xxx,M2:xxx,M3:xxx,M4:xxx"
+    if (sscanf(receivedData.c_str(), "M1:%d,M2:%d,M3:%d,M4:%d", &m1, &m2, &m3, &m4) == 4) {
+      // Map input range (-400 to 400) to ESC pulse width range (1100 to 1900 microseconds)
+      int s1 = map(m1, -400, 400, 1100, 1900);
+      int s2 = map(m2, -400, 400, 1100, 1900);
+      int s3 = map(m3, -400, 400, 1100, 1900);
+      int s4 = map(m4, -400, 400, 1100, 1900);
+
+      // Send the mapped signals to each ESC
+      motor1.writeMicroseconds(s1);
+      motor2.writeMicroseconds(s2);
+      motor3.writeMicroseconds(s3);
+      motor4.writeMicroseconds(s4);
+
+      // Debug: print the parsed and mapped values
+      Serial.print("Parsed values: ");
+      Serial.print(m1); Serial.print(", ");
+      Serial.print(m2); Serial.print(", ");
+      Serial.print(m3); Serial.print(", ");
+      Serial.println(m4);
+      Serial.print("Mapped signals: ");
+      Serial.print(s1); Serial.print(", ");
+      Serial.print(s2); Serial.print(", ");
+      Serial.print(s3); Serial.print(", ");
+      Serial.println(s4);
+    } else {
+      Serial.println("Error parsing motor data");
+    }
+  } else {
+    Serial.println("Waiting for data...");
+    delay(1000);
+  }
+}

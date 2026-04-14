@@ -1,0 +1,25 @@
+Installing NodeMcu into Arduino
+ESP8266WiFi- 
+https://www.instructables.com/Steps-to-Setup-Arduino-IDE-for-NODEMCU-ESP8266-WiF/
+(http://arduino.esp8266.com/stable/package_esp8266com_index.json)
+
+
+Wifi Module Library
+Wire-
+ESP8266WiFi- 
+ESPAsyncTCP- ESPAsyncTCP by dvarrel (https://github.com/dvarrel/ESPAsyncTCP)
+ESPAsyncWebServer- https://github.com/me-no-dev/ESPAsyncWebServer
+WebSerial- WebSerial by Ayush Sharma()
+
+
+RTC Library:
+RTClib- RTClib by Adafruit (https://github.com/adafruit/RTClib)
+
+Graph Library:
+ArduinoJson- ArduinoJson by Benoit Blanchon (https://arduinojson.org/?utm_source=meta&utm_medium=library.properties)
+
+Bar02 Libraries:
+
+https://bluerobotics.com/learn/guide-to-using-the-bar02-with-an-arduino/
+MS5837- https://github.com/bluerobotics/BlueRobotics_MS5837_Library
+** change File **
