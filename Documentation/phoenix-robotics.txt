@@ -1,0 +1,15 @@
+Led 8 student engineers across 2,400+ hours, delivering 18 competition-ready features with established code review and engineering standards
+Architected an embedded C++ control system with custom thruster-mixing across 4 brushless motors, achieving stable 6-DOF maneuvering in 95% of missions
+Cut control system latency by 35ms through fault isolation and concurrency control across embedded and vision subsystems
+Reduced debugging time by 40% by introducing structured logging and repeatable troubleshooting workflows
+Won Regional Championship and placed Top 10 at the 2024 MATE ROV World Championship among 30+ global university and professional teams
+
+
+
+
+Pheonix robotics was a robitcs team I was a part of, we built Underwater ROVs and vertical profilers, above is some of the points in my experience from there but I want you to basically rewrite it. 
+
+
+The robotics team was a part of Brooks-DeBartolo Collegiate High School (BDCHS)
+
+I am including a lot of info here you do not have to use everything 
